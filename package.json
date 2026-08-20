@@ -13,8 +13,13 @@
     "test:search": "tsx tests/test-search.ts",
     "test:get": "tsx tests/test-get-entity.ts",
     "test:dashboard": "tsx tests/test-dashboard.ts",
-
-    "mcp:dev": "tsx server/index.ts"
+    "test:queue:e001": "tsx tests/enqueue-e001-running.ts",
+    "mcp:dev": "tsx server/index.ts",
+    "sync:airtable": "tsx server/sync/airtableSync.ts",
+    "sync:airtable:push": "tsx server/sync/airtableSync.ts",
+    "sync:airtable:pull": "tsx server/sync/airtablePull.ts",
+    "sync:airtable:watch": "tsx server/sync/syncLoop.ts",
+    "dashboard:dev": "tsx server/dashboard/index.ts"
   },
   "repository": {
     "type": "git",
@@ -34,6 +39,7 @@
   "homepage": "https://github.com/TillyEndless/Research-OS#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "zod": "^4.4.3"
   },
