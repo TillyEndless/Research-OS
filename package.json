@@ -1,0 +1,41 @@
+{
+  "name": "research-os",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Persistent AI research memory, MCP server, and research dashboard.",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+
+    "db:migrate": "tsx server/db/runMigrations.ts",
+
+    "test:ingest": "tsx tests/test-ingest.ts",
+    "test:existing": "tsx tests/test-existing-reference.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TillyEndless/Research-OS.git"
+  },
+  "keywords": [
+    "research",
+    "mcp",
+    "sqlite",
+    "ai-research-assistant"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TillyEndless/Research-OS/issues"
+  },
+  "homepage": "https://github.com/TillyEndless/Research-OS#readme",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^26.2.0",
+    "tsx": "^4.23.12",
+    "typescript": "^7.0.2"
+  }
+}
