@@ -8,8 +8,8 @@ import {
 import {
   IngestResearchUpdateSchema,
   type IngestResearchUpdate,
+  type WorkspaceStatePatch,
 } from "../schemas/ingest.js";
-
 
 type EntityRow = {
   id: string;
@@ -31,6 +31,8 @@ export type IngestResult = {
   updated_entities: string[];
 
   relation_count: number;
+
+  workspace_state_updated: boolean;
 };
 
 
@@ -568,7 +570,107 @@ function persistSubtype(
     }
   }
 }
+// =========================================================
+// Workspace state
+// =========================================================
 
+/**
+ * Persist the derived current research state.
+ *
+ * IMPORTANT:
+ *
+ * workspace_state is only a current-state projection.
+ * It does NOT replace historical entities, findings,
+ * decisions, experiments, or relations.
+ *
+ * Undefined fields mean:
+ *   keep the existing database value unchanged.
+ */
+function persistWorkspaceState(
+  patch: WorkspaceStatePatch | undefined,
+): boolean {
+
+  if (!patch) {
+    return false;
+  }
+
+
+  const coreQuestion =
+    nullable(
+      patch.core_question,
+    );
+
+
+  const currentSummary =
+    nullable(
+      patch.current_summary,
+    );
+
+
+  const majorContradictions =
+    patch.major_contradictions === undefined
+      ? null
+      : JSON.stringify(
+          patch.major_contradictions,
+        );
+
+
+  const blockers =
+    patch.blockers === undefined
+      ? null
+      : JSON.stringify(
+          patch.blockers,
+        );
+
+
+  db.prepare(`
+    UPDATE workspace_state
+
+    SET
+      core_question = CASE
+        WHEN ? IS NULL
+        THEN core_question
+        ELSE ?
+      END,
+
+      current_summary = CASE
+        WHEN ? IS NULL
+        THEN current_summary
+        ELSE ?
+      END,
+
+      major_contradictions_json = CASE
+        WHEN ? IS NULL
+        THEN major_contradictions_json
+        ELSE ?
+      END,
+
+      blockers_json = CASE
+        WHEN ? IS NULL
+        THEN blockers_json
+        ELSE ?
+      END,
+
+      updated_at = CURRENT_TIMESTAMP
+
+    WHERE id = 1
+  `).run(
+    coreQuestion,
+    coreQuestion,
+
+    currentSummary,
+    currentSummary,
+
+    majorContradictions,
+    majorContradictions,
+
+    blockers,
+    blockers,
+  );
+
+
+  return true;
+}
 
 /**
  * Main ResearchOS ingestion service.
@@ -656,10 +758,11 @@ export function ingestResearchUpdate(
 
   const updatedEntities: string[] = [];
 
-
   // -------------------------------------------------------
   // 4. Atomic transaction.
   // -------------------------------------------------------
+
+  let workspaceStateUpdated = false;
 
   db.exec("BEGIN IMMEDIATE");
 
@@ -725,9 +828,24 @@ export function ingestResearchUpdate(
         sourceId,
         targetId,
         relation.relation_type,
-        jsonOrNull(relation.metadata),
+        jsonOrNull(
+          relation.metadata,
+        ),
       );
     }
+
+
+    // -----------------------------------------------------
+    // Persist derived current workspace state.
+    //
+    // This is a current-state projection only.
+    // Historical entities and relations remain preserved.
+    // -----------------------------------------------------
+
+    workspaceStateUpdated =
+      persistWorkspaceState(
+        input.workspace_state,
+      );
 
 
     // -----------------------------------------------------
@@ -760,5 +878,8 @@ export function ingestResearchUpdate(
 
     relation_count:
       input.relations.length,
+
+    workspace_state_updated:
+      workspaceStateUpdated,
   };
 }

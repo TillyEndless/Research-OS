@@ -352,6 +352,58 @@ export const RelationDraftSchema = z.object({
     .optional(),
 });
 
+// =========================================================
+// Workspace current state
+// =========================================================
+
+export const MajorContradictionSchema =
+  z.object({
+    title:
+      z.string().min(1),
+
+    description:
+      z.string().optional(),
+
+    status:
+      z
+        .enum([
+          "open",
+          "investigating",
+          "partially_resolved",
+          "resolved",
+        ])
+        .optional(),
+  });
+
+
+export const WorkspaceStatePatchSchema =
+  z.object({
+    core_question:
+      z.string().optional(),
+
+    current_summary:
+      z.string().optional(),
+
+    major_contradictions:
+      z
+        .array(
+          MajorContradictionSchema,
+        )
+        .optional(),
+
+    blockers:
+      z
+        .array(
+          z.string(),
+        )
+        .optional(),
+  });
+
+
+export type WorkspaceStatePatch =
+  z.infer<
+    typeof WorkspaceStatePatchSchema
+  >;
 
 // =========================================================
 // Complete ingest request
@@ -393,8 +445,10 @@ export const IngestResearchUpdateSchema = z.object({
   relations: z
     .array(RelationDraftSchema)
     .default([]),
-});
 
+  workspace_state:
+    WorkspaceStatePatchSchema.optional(),
+});
 
 // =========================================================
 // Inferred TypeScript types

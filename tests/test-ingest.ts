@@ -6,7 +6,30 @@ import {
 
 
 const result = ingestResearchUpdate({
+  workspace_state: {
+    core_question:
+        "为什么 decoder supervision 改善 teacher-forcing，却没有改善 free generation？",
 
+    current_summary:
+        "当前主要检查 decode loss 是否主要被 B 自身吸收，而没有充分迫使 A 的 latent representation 承载 reasoning information。",
+
+    major_contradictions: [
+        {
+        title:
+            "Teacher-forcing improvement vs free-generation degradation",
+
+        description:
+            "+decode 在 teacher-forcing 下明显改善，但 free generation 没有同步改善，因此训练目标和真实生成能力之间可能存在错位。",
+
+        status:
+            "investigating",
+        },
+    ],
+
+    blockers: [
+        "Freeze-B controlled experiment 尚未完成",
+    ],
+    },
   sources: [
     {
       client_ref: "meeting_today",
